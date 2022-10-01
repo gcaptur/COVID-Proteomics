@@ -1,0 +1,471 @@
+#############
+#This R code summarises the main statistical analyses reported in the following paper:
+
+#Plasma proteomic signature predicts who will get persistent symptoms following SARS-CoV-2 infection#
+#*Gabriella Captur1,2,3, *James C Moon2,4, Constantin-Cristian Topriceanu1,2, George Joy2,4, Leo Swadling5, Jenny Hallqvist6, Ivan Doykov6, Nina Patel6, Justyna Spiewak6, Tomas Baldwin6, Matt Hamblin4, Katia Menacho2,4, Marianna Fontana2,7, Thomas A. Treibel2,4, Charlotte Manisty2,4, Ben O’Brien8,9,10,11, Joseph M Gibbons12, Corrina Pade12, Tim Brooks13, Daniel M Altmann14, Rosemary J Boyton15,16, Áine McKnight12, Mala K Maini5, Mahdad Noursadeghi5, Kevin Mills#6, Wendy E Heywood#6, UK COVIDsortium Investigators‡
+
+#*GC & JM joint first authors; #KM & WH joint last authors.
+#1.	UCL MRC Unit for Lifelong Health and Ageing, 33 Bedford Place, London, WC1B 5JU, UK
+#2.	Institute of Cardiovascular Science, University College London, Gower Street, London, WC1E 6BT, UK 
+#3.	The Royal Free Hospital, Center for Inherited Heart Muscle Conditions, Cardiology Department, Pond Street, Hampstead, London, NW3 2QG, UK
+#4.	Barts Heart Center, The Cardiovascular Magnetic Resonance Imaging Unit and The Inherited Cardiovascular Diseases Unit, St Bartholomew’s Hospital, West Smithfield, London, EC1A 7BE, UK
+#5.	Division of Infection and Immunity, University College London, London, WC1E 6JF, UK
+#6.	Translational Mass Spectrometry Research Group, UCL Institute of Child Health and Great Ormond Street Hospital, 30 Guilford Street, London, WC1N 1EH, UK
+#7.	The Royal Free Hospital, Cardiac MRI Unit, Pond Street, Hampstead, London, NW3 2QG, UK
+#8.	Department of Perioperative Medicine, St. Bartholomew's Hospital, Barts Health NHS Trust, West Smithfield, London, EC1A 7BE, UK 
+#9.	Department of Cardiac Anesthesiology and Intensive Care Medicine, German Heart Center, Augustenburger Platz 1, 13353, Berlin, Germany
+#10.	Department of Cardiac Anesthesiology and Intensive Care Medicine, Charité Berlin, Augustenburger Platz 1, 13353, Berlin, Germany
+#11.	Outcomes Research Consortium, Department of Outcomes Research, The Cleveland Clinic, 9500 Euclid Ave P77, Cleveland, OH 44195, USA
+#12.	Blizard Institute, Barts and the London School of Medicine and Dentistry, Queen Mary University of London, London, E1 2AT, UK 
+#13.	National Infection Service, Public Health England, Porton Down, UK
+#14.	Department of Immunology and Inflammation, Imperial College London, London, W12 0NN, UK
+#15.	Department of Infectious Disease, Imperial College London, London, SW7 2AZ, UK
+#16.	Lung Division, Royal Brompton Harefield Hospitals, Guy’s and St Thomas’ NHS Foundation Trust, London, SW3 6NP, UK
+
+##########################
+#Require the following R packages 
+
+require(HH)
+require(stats)
+require(psych)
+require(Hmisc)
+require(pastecs)
+require(graphics)
+require(ggplot2)
+require(scales)
+require(reshape2)
+require(plyr)
+require(zoo)
+require(reshape)
+require(gplots)
+require(colorspace)
+require(dendextend)
+require(pvclust)
+require(circlize)
+require(ape)
+require(ggdendro)
+require(magrittr)
+require(pheatmap)
+require(grid)
+require(vegan)
+require(heatmap3)
+require(ComplexHeatmap)
+require(tidyverse)
+require(RColorBrewer)
+require(ggbiplot)
+require(factoextra)
+require(dplyr)
+require(ggpubr)
+require(rstatix)
+require(ggbeeswarm)
+require(devtools)
+require(kassambara)
+require(easyGgplot2)
+require(pathfindR)
+require(ggrepel)
+BiocManager::install("clusterProfiler")
+BiocManager::install("pathview")
+BiocManager::install("enrichplot")
+library(clusterProfiler)
+library(enrichplot)
+library(ggplot2)
+require(DOSE)
+BiocManager::install("ALL", force = TRUE)
+BiocManager::install("org.Hs.eg.db", force = TRUE)
+BiocManager::install("BiocManager", force = TRUE)
+BiocManager::install("topGO", force = TRUE)
+BiocManager::install("bioconductor", force = TRUE)
+BiocManager::install("Rgraphviz", force = TRUE)
+BiocManager::install("GO.db", force = TRUE)
+BiocManager::install("biomaRt", force = TRUE)
+install("BiocVersion", force = TRUE)
+require(BiocManager)
+require(topGO)
+require(bioconductor)
+require(Rgraphviz)
+require(GO.db)
+require(biomaRt)
+require(org.Hs.eg.db)
+require(BiocVersion)
+require(simecol)
+require(QuantPsyc)
+require(data.table)
+require(car)
+require(randomForest)
+require(caret) 
+require(datasets.load)
+require(mlbench)
+require(pROC)
+require(boot)
+require(ibdreg)
+require(mvtnorm)
+require(dawai)
+require(Rlda)
+require(tools)
+require(MASS)
+install.packages("devtools")
+library(devtools)
+install_github("kassambara/easyGgplot2", force = TRUE)
+require(gapminder)
+require(tidyr)
+require(ggridges)
+require(forecast)
+require(mice)
+require(VIM)
+require(lattice)
+require(tibble)
+require(miceadds)
+require(sjmisc)
+require(fpp2)
+require(fpp3)
+require(timetk)
+require(tidyquant)
+require(cowplot)
+require(varhandle)
+require(forcats)
+require(arules)
+require(viridis)
+require(corrplot)
+
+##########
+#wilcoxon test for diff btw seropositive and uninfected controls
+
+a2 <- read.csv("~/Documents/PUBLICATIONS/PC/Publications/_COVID_PROTEOMICS/STATS/__FINAL_MERGE/nicvspcr.csv")
+a2$group<-as.factor(a2$group)
+wilcox.test(a2$age~a2$group, data=a2)
+
+a2 <- read.csv("~/Documents/PUBLICATIONS/PC/Publications/_COVID_PROTEOMICS/STATS/__FINAL_MERGE/analytes.csv")
+wilcox.test(a2$A1AT_LSS~a2$PCR, data=a2, p.adjust.method = "BH")
+#repeat for remaining analytes 
+
+##########
+#faceted box plot for diff between NIC and sero+ 
+
+iris<-read.csv("~/Documents/PUBLICATIONS/PC/Publications/_COVID_PROTEOMICS/STATS/__FINAL_MERGE/nicsero12.csv")
+iris=read.csv("~/Documents/PUBLICATIONS/PC/Publications/_COVID_PROTEOMICS/STATS/__FINAL_MERGE/nicsero12.csv")
+iris<- data.frame(iris[,-1], row.names=iris[,1])
+iris$infstatus <- as.factor(iris$infstatus)
+df.m <- melt(iris, id.var = "infstatus")
+vari <- df.m$variable
+df.m$ vari <- df.m$variable
+stat.test <- df.m %>%
+  group_by(vari) %>%
+  wilcox_test(value ~ infstatus) %>%
+  add_significance()
+stat.test 
+bxp <- ggboxplot(df.m, x = "infstatus", y = "value", color = "infstatus", palette = "jco", facet.by = "vari", outlier.size = 0.1) + theme(strip.text = element_text(size = rel(0.5)))
+bxp 
+stat.test <- stat.test %>% add_xy_position(x = "infstatus")
+bxp + stat_pvalue_manual(stat.test, hide.ns = TRUE) + theme(axis.text.y = element_text(size = 4)) + theme(axis.text.x = element_text(size = 0)) 
+
+##############################
+#mdp violin plots for symptomatic vs asymptomatic PCR+
+
+iris<-read.csv("~/Documents/PUBLICATIONS/PC/Publications/_COVID_PROTEOMICS/STATS/__FINAL_MERGE/mdp12sympindex.csv")
+iris=read.csv("~/Documents/PUBLICATIONS/PC/Publications/_COVID_PROTEOMICS/STATS/__FINAL_MERGE/mdp12sympindex.csv")
+iris<- data.frame(iris[,-1], row.names=iris[,1])
+iris$infstatus <- as.factor(iris$infstatus)
+df.m <- melt(iris, id.var = "infstatus")
+vari <- df.m$variable
+df.m$ vari <- df.m$variable
+stat.test <- df.m %>%
+  group_by(vari) %>%
+  wilcox_test(value ~ infstatus) %>%
+  add_significance()
+stat.test 
+par(mar = c(2, 2, 2, 2))
+p <- ggplot(iris, aes(x = infstatus, y = mdp)) +
+geom_violin(fill="#e0e0e0", draw_quantiles = c(0.25, 0.75), color = "red", trim=FALSE, adjust = 2) + 
+geom_violin(fill="transparent", draw_quantiles = 0.5, trim=FALSE, adjust = 2) +   
+theme(legend.position = "none") + 
+geom_jitter(position = position_jitter(width = .2, height =0), shape=1, size=4, stroke=0.1, color="black") +
+theme_bw() + labs(y = "MDP (mean Z score)")
+p  
+
+##############################
+#WR with correction p values to add to violins
+
+iris<-read.csv("~/Documents/PUBLICATIONS/PC/Publications/_COVID_PROTEOMICS/STATS/__FINAL_MERGE/mdp12serial.csv")
+iris<- data.frame(iris[,-1], row.names=iris[,1])
+iris$infstatus <- as.factor(iris$infstatus)
+
+timeminus1 <- subset(iris, iris$infstatus==-1)
+timeminus2 <- subset(iris, iris$infstatus==-2)
+time0 <- subset(iris, iris$infstatus==0)
+time1 <- subset(iris, iris$infstatus==1)
+time2 <- subset(iris, iris$infstatus==2)
+time3 <- subset(iris, iris$infstatus==3)
+time4 <- subset(iris, iris$infstatus==4)
+time5 <- subset(iris, iris$infstatus==5)
+time6 <- subset(iris, iris$infstatus==6)
+
+timeminus1 <- rbind(timeminus2, timeminus1)
+time0 <- rbind(timeminus2, time0)
+time1 <- rbind(timeminus2, time1)
+time2 <- rbind(timeminus2, time2)
+time3 <- rbind(timeminus2, time3)
+time4 <- rbind(timeminus2, time4)
+time5 <- rbind(timeminus2, time5)
+time6 <- rbind(timeminus2, time6)
+
+pairwise.wilcox.test(timeminus1$mdp, timeminus1$infstatus, p.adjust.method = "BH")
+pairwise.wilcox.test(time0$mdp, time0$infstatus, p.adjust.method = "BH")
+pairwise.wilcox.test(time1$mdp, time1$infstatus, p.adjust.method = "BH")
+pairwise.wilcox.test(time2$mdp, time2$infstatus, p.adjust.method = "BH")
+pairwise.wilcox.test(time3$mdp, time3$infstatus, p.adjust.method = "BH")
+pairwise.wilcox.test(time4$mdp, time4$infstatus, p.adjust.method = "BH")
+pairwise.wilcox.test(time5$mdp, time5$infstatus, p.adjust.method = "BH")
+pairwise.wilcox.test(time6$mdp, time6$infstatus, p.adjust.method = "BH")
+
+##############################
+#HCA of 12 proteins comparing NIC, PCR+ and inf severity 
+
+iris<-read.table("~/Documents/PUBLICATIONS/PC/Publications/_COVID_PROTEOMICS/STATS/__FINAL_MERGE/hca12zscaled.csv", sep=",", header = TRUE)
+iris=read.table("~/Documents/PUBLICATIONS/PC/Publications/_COVID_PROTEOMICS/STATS/__FINAL_MERGE/hca12zscaled.csv", sep=",", header = TRUE)
+
+iris <- data.frame(iris[,-1], row.names=iris[,1])
+
+iris1 <- as.matrix(iris[, grep("_", colnames(iris))])
+
+col = list(sympindex = c("0" = "#C5CDD8", "1" = "#325863", "2" = "#D99A3D", "3" = "#8F282B"))
+
+row_ha = rowAnnotation(sympindex = iris$sympindex, col = col, annotation_height = unit(2, "mm"))
+
+row_dend = hclust(dist(iris1)) 
+col_dend = hclust(dist(t(iris1)))
+
+par(mar = c(2, 2, 2, 2))
+Heatmap(iris1, name = "Analytes", col = viridis::viridis_pal(direction = -1)(3), border_gp = gpar(col = "#e0e0e0", lty = 0.1), rect_gp = gpar(col = "#e0e0e0", lwd = 0.1), right_annotation = row_ha, show_row_names = FALSE, show_column_names = TRUE, column_names_gp = gpar(fontsize = 5), cluster_columns = color_branches(col_dend, k = 4), split = data.frame(sympindex = iris$sympindex))
+
+##############################
+#Enrichment plot 
+
+par(mar = c(2, 2, 2, 2))
+require(ggplot2)
+ggplot(goEnrichment, aes(x=Term, y=-log10(KS))) +
+    stat_summary(geom = "bar", fun.y = mean, position = "dodge") +
+    xlab("Biological process") +
+    ylab("Enrichment") +
+    ggtitle("Title") +
+    scale_y_continuous(breaks = round(seq(0, max(-log10(goEnrichment$KS)), by = 2), 1)) +
+    theme_bw(base_size=24) +
+    theme(
+        legend.position='none',
+        legend.background=element_rect(),
+        plot.title=element_text(angle=0, size=24, face="bold", vjust=1),
+        axis.text.x=element_text(angle=0, size=18, face="bold", hjust=1.10),
+        axis.text.y=element_text(angle=0, size=18, face="bold", vjust=0.5),
+        axis.title=element_text(size=24, face="bold"),
+        legend.key=element_blank(),     #removes the border
+        legend.key.size=unit(1, "cm"),      #Sets overall area/size of the legend
+        legend.text=element_text(size=18),  #Text size
+        title=element_text(size=18)) +
+    guides(colour=guide_legend(override.aes=list(size=2.5))) +
+    coord_flip()
+
+library(scales)
+ntop <- 30
+ggdata <- goEnrichment[1:ntop,]
+ggdata$Term <- factor(ggdata$Term, levels = rev(ggdata$Term)) # fixes order
+gg1 <- ggplot(ggdata,
+  aes(x = Term, y = -log10(KS), size = -log10(KS), fill = -log10(KS))) +
+
+  expand_limits(y = 1) +
+  geom_point(shape = 21) +
+  scale_size(range = c(2.5,12.5)) +
+  scale_fill_continuous(low = 'royalblue', high = 'red4') +
+
+  xlab('') + ylab('Enrichment score') +
+  labs(
+    title = 'GO Biological processes',
+    subtitle = 'Top terms ordered by Kolmogorov-Smirnov p-value',
+    caption = 'Cut-off lines drawn at equivalents of p=0.05, p=0.01, p=0.001') +
+
+  geom_hline(yintercept = c(-log10(0.05), -log10(0.01), -log10(0.001)),
+    linetype = c("dotted", "longdash", "solid"),
+    colour = c("black", "black", "black"),
+    size = c(0.5, 1.5, 3)) +
+
+  theme_bw(base_size = 24) +
+  theme(
+    legend.position = 'right',
+    legend.background = element_rect(),
+    plot.title = element_text(angle = 0, size = 16, face = 'bold', vjust = 1),
+    plot.subtitle = element_text(angle = 0, size = 14, face = 'bold', vjust = 1),
+    plot.caption = element_text(angle = 0, size = 12, face = 'bold', vjust = 1),
+
+    axis.text.x = element_text(angle = 0, size = 12, face = 'bold', hjust = 1.10),
+    axis.text.y = element_text(angle = 0, size = 12, face = 'bold', vjust = 0.5),
+    axis.title = element_text(size = 12, face = 'bold'),
+    axis.title.x = element_text(size = 12, face = 'bold'),
+    axis.title.y = element_text(size = 12, face = 'bold'),
+    axis.line = element_line(colour = 'black'),
+
+    #Legend
+    legend.key = element_blank(), # removes the border
+    legend.key.size = unit(1, "cm"), # Sets overall area/size of the legend
+    legend.text = element_text(size = 14, face = "bold"), # Text size
+    title = element_text(size = 14, face = "bold")) +
+
+  coord_flip()
+gg1
+
+#################################
+#does ABtitre at seroconversion predict LongCOVID?
+
+a5 <- read.csv("~/Documents/PUBLICATIONS/PC/Publications/_COVID_PROTEOMICS/STATS/__FINAL_MERGE/Antibody_PASC.csv")
+model <- glm(a5$X612 ~ a5$SEQTS, data = a5, family = binomial)
+summary(model)$coef
+
+###########################
+#random forest prediction of long covid symptoms by analytes at first seroconversion 
+
+iris <- read.csv("~/Documents/PUBLICATIONS/PC/Publications/_COVID_PROTEOMICS/STATS/__FINAL_MERGE/X12any.csv")
+iris$X12ANY <- as.factor(iris$X12ANY)
+
+rf <- randomForest(iris$X12ANY~., data=iris, proximity=TRUE) 
+print(rf)
+summary(rf)
+plot(rf)
+
+t <- tuneRF(iris[,-5], iris[,5],
+       stepFactor = 0.5,
+       plot = TRUE,
+       ntreeTry = 1000,
+       trace = TRUE,
+       improve = 0.05)
+
+hist(treesize(rf),
+     main = "No. of Nodes for the Trees",
+     col = "green")
+
+varImpPlot(rf,
+           sort = T,
+           n.var = 20,
+           main = "Top 20 - Variable Importance")
+importance(rf)
+varUsed(rf)
+plot(varImp(rf), main="Variable Importance with Random Forest")
+
+p1 <- predict(rf, iris)
+confusionMatrix(p1, iris$X12ANY, positive='1')
+bagg.probs=predict(rf, iris, type="prob")
+rocCurve.bagg <- roc(iris$X12ANY,bagg.probs[,"1"])
+plot(rocCurve.bagg,col=c(6))
+auc(rocCurve.bagg)
+
+################################
+#LDA canonical plot to estimate misclassification rate based on the RF predictions
+
+rm(list=ls(all=TRUE))
+DATA<-read.csv("~/Documents/PUBLICATIONS/PC/Publications/_COVID_PROTEOMICS/STATS/__FINAL_MERGE/X12LDA.csv") 
+head(DATA)
+Group <- DATA$Group
+par(mar=c(4,4,4,4))
+plot(DATA[,c(2:92)],col=DATA[,1])
+DATAL<-lda(Group ~ ., ,data=DATA)
+DATALL <- predict(DATAL, DATA)
+class <- predict(DATAL)$class
+
+ldahist(data = DATALL$x[,1], g=Group)
+
+plot(DATALL$x[,1], type="n", xlim=c(0,35), ylab=c("LDA Axis 1"))
+text(DATALL$x[,1], row.names(DATA),  col=c(as.numeric(class)+10))
+abline(v=0, lty="dotted")
+abline(h=0, lty="dotted")
+
+######################################################
+#PCA
+
+iris<-read.csv("~/Documents/PUBLICATIONS/PC/Publications/_COVID_PROTEOMICS/STATS/__FINAL_MERGE/mdpall.csv")
+iris=read.csv("~/Documents/PUBLICATIONS/PC/Publications/_COVID_PROTEOMICS/STATS/__FINAL_MERGE/mdpall.csv")
+iris<- data.frame(iris[,-1], row.names=iris[,1])
+iris$infstatus <- as.factor(iris$infstatus)
+
+df.m <- melt(iris, id.var = "infstatus")
+vari <- df.m$variable
+df.m$ vari <- df.m$variable
+
+stat.test <- df.m %>%
+  group_by(vari) %>%
+  wilcox_test(value ~ infstatus) %>%
+  add_significance()
+stat.test 
+
+par(mar = c(2, 2, 2, 2))
+p <- ggplot(iris, aes(x = infstatus, y = mdp)) +
+geom_violin(fill="#e0e0e0", size=0.1, draw_quantiles = c(0.25, 0.75), color = "red", trim=FALSE, adjust = 2) + 
+geom_violin(fill="transparent", size=0.2, draw_quantiles = 0.5, trim=FALSE, adjust = 2) +   
+theme(legend.position = "none") + 
+geom_jitter(position = position_jitter(width = .2, height =0), shape=1, size=4, stroke=0.1, color="black") +
+theme_bw() + labs(y = "MDP (mean Z score)")
+p  
+
+stat.test <- stat.test %>% add_xy_position(x = "infstatus")
+p + stat_pvalue_manual(stat.test, hide.ns = FALSE) 
+
+######################################
+#Trajectories proteomics vs pcr status vs serolevel vs symptoms
+
+par(mar = c(1,1,1,1))
+require(ggplot2)
+mouse<-read.table("~/Documents/PUBLICATIONS/PC/Publications/_COVID_PROTEOMICS/STATS/__FINAL_MERGE/trajall.csv", header=TRUE, sep=",") 
+mouse=read.table("~/Documents/PUBLICATIONS/PC/Publications/_COVID_PROTEOMICS/STATS/__FINAL_MERGE/trajall.csv", header=TRUE, sep=",")
+PCR <- as.numeric(mouse$PCR)
+SYMPnew <- as.numeric(mouse$SYMPnew)
+ylim.prim <- c(18, 22)   
+ylim.sec <- c(0, 60) 
+b <- diff(ylim.prim)/diff(ylim.sec)
+a <- ylim.prim[1] - b*ylim.sec[1]
+x   = seq(-1, 6, 1)
+rib1<- aes(x = mouse$X, ymax = mouse$SERPINA1p, ymin = mouse$SERPINA1n, fill = "SERPINA1")
+rib2<- aes(x = mouse$X, ymax = a + mouse$SEQTSp* b, ymin = a + mouse$SEQTSn* b, fill = "Anti-S1")
+rib3<- aes(x = mouse$X, ymax = a + mouse$SEQTNp* b, ymin = a + mouse$SEQTNn* b, fill = "Anti-NP")
+p <- ggplot(mouse, aes(x=mouse$X))+
+geom_ribbon(rib1, alpha=0.5) +
+geom_ribbon(rib2, alpha=0.5) +
+geom_ribbon(rib3, alpha=0.5) +
+geom_line(aes(x = mouse$X, y = mouse$SERPINA1),size = 0.2, colour="indianred4") +
+geom_line(aes(x = mouse$X, y = a + mouse$SEQTS* b),size = 0.2, colour="grey39") +
+geom_line(aes(x = mouse$X, y = a + mouse$SEQTN* b),size = 0.2, colour="grey39") +
+geom_point(aes(x= mouse$X, y = mouse$SERPINA1nic),shape = 21, fill = "#BCA7E8", color = "mediumpurple3", size = 1) +
+geom_segment(aes(x=-1,xend=-1,y=20.10,yend=19.86), color = "mediumpurple3") +
+geom_line(aes(x = mouse$X, mouse$SERPINA1nic),size = 0.2, colour="grey39") +
+scale_fill_manual(breaks=c("Anti-NP", "Anti-S1", "SERPINA1"), values=c("Anti-NP"="gray76","Anti-S1"="gray40","SERPINA1"="lightpink2"))+
+xlab("Weeks from +PCR") +
+scale_y_continuous(name = 'Analyte concentration (pmol/mL)', sec.axis = sec_axis(~ (. - a)/b, name = 'Antibody titre (U/mL)')) +
+ggtitle("SERPINA1") + 
+theme_bw() + theme(axis.line.y.left = element_line(color = "indianred4"), axis.ticks.y.left = element_line(color = "indianred4"), axis.text.y.left = element_text(color = "indianred4"), axis.title.y.left = element_text(color = "indianred4"), axis.line.y.right = element_line(color = "grey39"), axis.ticks.y.right = element_line(color = "grey39"), axis.text.y.right = element_text(color = "grey39"), axis.title.y.right = element_text(color = "grey39")) 
+p
+
+##################
+#correlogram 
+
+iris<-read.table("~/Documents/PUBLICATIONS/PC/Publications/_COVID_PROTEOMICS/STATS/__FINAL_MERGE/correlogram3.csv", header=TRUE, sep=",") 
+iris=read.table("~/Documents/PUBLICATIONS/PC/Publications/_COVID_PROTEOMICS/STATS/__FINAL_MERGE/correlogram3.csv", header=TRUE, sep=",")
+
+M<-cor(iris)
+head(round(M,2))
+
+cor.mtest <- function(mat, ...) {
+    mat <- as.matrix(mat)
+    n <- ncol(mat)
+    p.mat<- matrix(NA, n, n)
+    diag(p.mat) <- 0
+    for (i in 1:(n - 1)) {
+        for (j in (i + 1):n) {
+            tmp <- cor.test(mat[, i], mat[, j], ...)
+            p.mat[i, j] <- p.mat[j, i] <- tmp$p.value
+        }
+    }
+  colnames(p.mat) <- rownames(p.mat) <- colnames(mat)
+  p.mat
+ }
+
+p.mat <- cor.mtest(iris)
+head(p.mat[, 1:5])
+
+corrplot(M, method="circle", type="upper", order="hclust", col=brewer.pal(n=8, name="PuOr"), tl.col="black", tl.srt=70, p.mat = p.mat, sig.level = 0.05, insig = "blank", tl.cex = 0.5)
+
+#############################
+
